@@ -1,0 +1,12 @@
+venv/
+data/raw/*
+!data/raw/.gitkeep
+models/*
+!models/.gitkeep
+mlruns/
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+*.egg-info/

@@ -1,0 +1,17 @@
+name: fraud-risk-scoring
+services:
+  postgres:
+    image: postgres:16
+    container_name: fraud_risk_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fraud
+      POSTGRES_PASSWORD: fraud_dev_password
+      POSTGRES_DB: fraud_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - fraud_risk_pg_data:/var/lib/postgresql/data
+
+volumes:
+  fraud_risk_pg_data:
