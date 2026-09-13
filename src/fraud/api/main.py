@@ -24,30 +24,17 @@ ROOT = Path(__file__).resolve().parents[3]
 DATA_DIR = ROOT / "data" / "processed"
 CALIBRATOR_PATH = DATA_DIR / "platt_calibrator.joblib"
 METADATA_PATH = DATA_DIR / "model_metadata.json"
+PREDICTION_LOGS_DDL_PATH = ROOT / "sql" / "prediction_logs.sql"
 
 VAL_PR_AUC = 0.2312  # ADR 0004
 TRAINED_ON_ROWS = 413378  # M2 temporal split print
 
-CREATE_PREDICTION_LOGS_SQL = text(
-    """
-    CREATE TABLE IF NOT EXISTS prediction_logs (
-        id BIGSERIAL PRIMARY KEY,
-        transaction_id TEXT,
-        probability_raw DOUBLE PRECISION,
-        probability_calibrated DOUBLE PRECISION,
-        decision TEXT,
-        latency_ms DOUBLE PRECISION,
-        created_at TIMESTAMPTZ DEFAULT now()
-    )
-    """
-)
-
 INSERT_PREDICTION_LOG_SQL = text(
     """
     INSERT INTO prediction_logs
-        (transaction_id, probability_raw, probability_calibrated, decision, latency_ms)
+        (transaction_id, probability_raw, probability_calibrated, decision, model_version, latency_ms)
     VALUES
-        (:transaction_id, :probability_raw, :probability_calibrated, :decision, :latency_ms)
+        (:transaction_id, :probability_raw, :probability_calibrated, :decision, :model_version, :latency_ms)
     """
 )
 
@@ -72,24 +59,30 @@ def startup():
     _state["explainer"] = shap.TreeExplainer(_state["model"])
 
     with _state["engine"].connect() as conn:
-        conn.execute(CREATE_PREDICTION_LOGS_SQL)
+        conn.execute(text(PREDICTION_LOGS_DDL_PATH.read_text()))
         conn.commit()
 
 
-def _log_prediction(transaction_id, probability_raw, probability_calibrated, decision, latency_ms):
+def _log_prediction(transaction_id, probability_raw, probability_calibrated, decision, model_version, latency_ms):
     engine = _state["engine"]
-    with engine.connect() as conn:
-        conn.execute(
-            INSERT_PREDICTION_LOG_SQL,
-            {
-                "transaction_id": transaction_id,
-                "probability_raw": probability_raw,
-                "probability_calibrated": probability_calibrated,
-                "decision": decision,
-                "latency_ms": latency_ms,
-            },
-        )
-        conn.commit()
+    if engine is None:
+        return
+    try:
+        with engine.connect() as conn:
+            conn.execute(
+                INSERT_PREDICTION_LOG_SQL,
+                {
+                    "transaction_id": transaction_id,
+                    "probability_raw": probability_raw,
+                    "probability_calibrated": probability_calibrated,
+                    "decision": decision,
+                    "model_version": model_version,
+                    "latency_ms": latency_ms,
+                },
+            )
+            conn.commit()
+    except Exception as exc:
+        print(f"prediction logging failed: {exc}")
 
 
 @app.post("/predict", response_model=PredictionResponse)
@@ -151,6 +144,7 @@ def predict(request: TransactionRequest, background_tasks: BackgroundTasks):
         prob_raw,
         prob_calibrated,
         decision,
+        metadata["model_version"],
         latency_ms,
     )
 
