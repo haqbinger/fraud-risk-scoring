@@ -8,8 +8,12 @@ DB_URL = os.environ.get(
 RANDOM_STATE = 42
 
 # --- Business cost assumptions (M4) ---
-# Assumed numbers, stated explicitly (see docs/m0_problem_framing.md).
-# M4's threshold and its sensitivity table are the only things
-# conditional on these — M1-M3 don't depend on them being "correct."
-COST_FALSE_NEGATIVE = 500.0   # missed fraud
-COST_FALSE_POSITIVE = 5.0     # wrongly blocked legitimate transaction
+# These are intentionally conservative, but realistic for a fraud operation:
+# - a missed fraud can trigger chargeback, investigation, regulatory exposure, and reputation damage
+# - a false positive is a manual review or blocked legitimate transaction, which still has cost
+COST_FALSE_NEGATIVE = 2000.0
+COST_FALSE_POSITIVE = 150.0
+
+# Operational cap for manual review volume.
+# Most fraud teams cannot review more than ~5-10% of transactions without scaling operations.
+MAX_REVIEW_RATE = 0.05
