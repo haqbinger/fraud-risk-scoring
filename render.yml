@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: fraud-risk-scoring-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: FRAUD_DB_URL
+        fromDatabase:
+          name: fraud-risk-db
+          property: connectionString
+    healthCheckPath: /health
+
+databases:
+  - name: fraud-risk-db
+    plan: free
+    databaseName: fraud_db
+    user: fraud
