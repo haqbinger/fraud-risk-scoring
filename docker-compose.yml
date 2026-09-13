@@ -1,4 +1,5 @@
 name: fraud-risk-scoring
+
 services:
   postgres:
     image: postgres:16
@@ -12,6 +13,26 @@ services:
       - "5433:5432"
     volumes:
       - fraud_risk_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fraud -d fraud_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    container_name: fraud_risk_api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      FRAUD_DB_URL: postgresql://fraud:fraud_dev_password@postgres:5432/fraud_db
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data/processed:/app/data/processed:ro
+      - ./src/calibration:/app/src/calibration:ro
 
 volumes:
   fraud_risk_pg_data:
