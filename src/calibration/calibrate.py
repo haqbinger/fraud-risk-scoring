@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+
 from sklearn.calibration import calibration_curve
 from sklearn.isotonic import IsotonicRegression
 from sklearn.linear_model import LogisticRegression
