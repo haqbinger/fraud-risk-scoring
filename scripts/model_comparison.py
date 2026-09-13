@@ -1,15 +1,21 @@
 import time
+from pathlib import Path
 
-from sklearn.linear_model import LogisticRegression
+import joblib
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from xgboost import XGBClassifier
 
 from fraud.config import RANDOM_STATE
 from fraud.data import get_engine, load_data
-from fraud.features import build_feature_matrix, fit_median_impute
+from fraud.evaluations.metrics import (
+    compute_metrics,
+    precision_at_recall,
+    print_metrics,
+)
 from fraud.evaluations.splits import temporal_split
-from fraud.evaluations.metrics import compute_metrics, print_metrics, precision_at_recall
+from fraud.features import build_feature_matrix, fit_median_impute
 
 
 def time_fit(model, X, y):
@@ -32,8 +38,6 @@ def run():
     X_val = fit_median_impute(X_train, X_val, medians)
     X_test = fit_median_impute(X_train, X_test, medians)
 
-    # Only LogisticRegression needs scaling; computed once, reused for
-    # whichever model needs it below.
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_val_scaled = scaler.transform(X_val)
@@ -85,13 +89,23 @@ def run():
     winner_name = max(results.items(), key=lambda kv: kv[1]["val"]["pr_auc"])[0]
     print(f"\nHighest VAL PR-AUC: {winner_name}")
 
-    # Test touched here, once, only for the model already selected above.
     winner = results[winner_name]
     X_test_final = X_test_scaled if winner["needs_scaling"] else X_test
     test_prob = winner["model"].predict_proba(X_test_final)[:, 1]
     test_metrics = compute_metrics(y_test, test_prob)
     test_metrics["precision_at_80pct_recall"] = precision_at_recall(y_test, test_prob, 0.80)
     print_metrics(f"{winner_name} -- TEST (final, unbiased, touched once)", test_metrics)
+
+    Path("data/processed").mkdir(parents=True, exist_ok=True)
+    if hasattr(winner["model"], "save_model"):
+        model_path = Path("data/processed/winning_model.json")
+        winner["model"].save_model(str(model_path))
+        print(f"Saved winner model to {model_path}")
+    else:
+        model_path = Path("data/processed/winning_model.joblib")
+        from joblib import dump
+        dump(winner["model"], str(model_path))
+        print(f"Saved winner model to {model_path}")
 
     print(
         "\nThis is your M3 'done when' evidence: justify the choice in one "
