@@ -14,28 +14,19 @@ def load_data(engine=None):
     dataset every model-training script (M2 onward) consumes. Ordered
     by txn_ts so downstream chronological_split/temporal_split can just
     slice by row position without re-sorting.
+
+    features_m1 (P1) carries all V/C/D/M raw columns plus the engineered
+    velocity/amount/device/target-encoding/missingness-flag features, so
+    `f.*` covers ~400 columns on its own; only the handful of curated
+    columns not present in features_m1 are pulled from `transactions`.
     """
     engine = engine or get_engine()
     print("Loading joined features + raw columns from Postgres ...")
     query = """
         SELECT
-            f.transaction_id,
-            f.is_fraud,
-            f.txn_ts,
-            f.velocity_5min,
-            f.velocity_30min,
-            f.velocity_1h,
-            f.velocity_24h,
-            f.card1_hist_avg_amt,
-            f.card1_hist_std_amt,
-            f.card1_hist_txn_count,
-            f.amount_zscore_vs_card1_history,
-            f.seconds_since_card1_prev_txn,
-            f.device_hist_fraud_rate,
-            f.device_hist_txn_count,
+            f.*,
             t.transaction_amt,
             t.product_cd,
-            t.card1,
             t.addr1,
             t.p_emaildomain,
             t.device_type
