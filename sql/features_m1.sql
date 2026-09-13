@@ -141,6 +141,16 @@ SELECT
     b.is_fraud,
     b.txn_ts,
     b.card1,
+    -- Raw pass-throughs that existed in `transactions` but never reached
+    -- features_m1/load_data() until this P1 patch.
+    b.card2,
+    b."card3",
+    b."card4",
+    b."card5",
+    b."card6",
+    b.addr2,
+    b.dist1,
+    b.dist2,
     v.velocity_5min,
     v.velocity_30min,
     v.velocity_1h,

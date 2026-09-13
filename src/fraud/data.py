@@ -15,10 +15,11 @@ def load_data(engine=None):
     by txn_ts so downstream chronological_split/temporal_split can just
     slice by row position without re-sorting.
 
-    features_m1 (P1) carries all V/C/D/M raw columns plus the engineered
-    velocity/amount/device/target-encoding/missingness-flag features, so
-    `f.*` covers ~400 columns on its own; only the handful of curated
-    columns not present in features_m1 are pulled from `transactions`.
+    features_m1 (P1, patched) carries all V/C/D/M raw columns, card2-6,
+    addr2, dist1/dist2, plus the engineered velocity/amount/device/
+    target-encoding/frequency-encoding/missingness-flag features, so `f.*`
+    covers it all; only the handful of curated columns not present in
+    features_m1 are pulled from `transactions`.
     """
     engine = engine or get_engine()
     print("Loading joined features + raw columns from Postgres ...")

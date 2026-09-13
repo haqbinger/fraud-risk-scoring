@@ -25,6 +25,7 @@ EXCLUDE_COLS = {"transaction_id", "is_fraud", "txn_ts", "card1_prev_txn_ts"}
 CAT_COLS = [
     "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9",
     "product_cd", "p_emaildomain", "device_type",
+    "card4", "card6",  # added by the P1 patch that piped card2-6/addr2/dist1-2 through
 ]
 
 GAIN_DROP_THRESHOLD = 0.0001
