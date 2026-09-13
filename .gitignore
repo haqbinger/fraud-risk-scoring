@@ -11,8 +11,6 @@ data/processed/
 src/reports/
 tests/
 notebooks/
-decisions/
-docs/
 REVIEW_QUESTIONS/
 *.md
 .vscode/
