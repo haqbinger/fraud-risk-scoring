@@ -9,12 +9,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements-serve.txt pyproject.toml ./
 COPY src/ ./src/
 COPY sql/ ./sql/
+COPY data/processed/ ./data/processed/
 
 RUN pip install --no-cache-dir -r requirements-serve.txt && \
     pip install --no-cache-dir -e . && \
     pip cache purge
-
-RUN mkdir -p data/processed
 
 EXPOSE 8000
 
