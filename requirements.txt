@@ -8,3 +8,7 @@ shap
 mlflow
 joblib
 boto3
+fastapi
+uvicorn[standard]
+joblib
+httpx
