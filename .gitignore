@@ -10,3 +10,4 @@ __pycache__/
 .pytest_cache/
 .ipynb_checkpoints/
 *.egg-info/
+REVIEW_QUESTIONS/
