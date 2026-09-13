@@ -5,7 +5,11 @@ from pathlib import Path
 
 import joblib
 import numpy as np
-import shap
+try:
+    import shap
+    SHAP_AVAILABLE = True
+except ImportError:
+    SHAP_AVAILABLE = False
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from sqlalchemy import text
 
@@ -56,7 +60,8 @@ def startup():
     with open(METADATA_PATH) as f:
         _state["metadata"] = json.load(f)
     _state["engine"] = get_engine()
-    _state["explainer"] = shap.TreeExplainer(_state["model"])
+    if SHAP_AVAILABLE:
+     _state["explainer"] = shap.TreeExplainer(_state["model"])
 
     with _state["engine"].connect() as conn:
         conn.execute(text(PREDICTION_LOGS_DDL_PATH.read_text()))
@@ -120,22 +125,24 @@ def predict(request: TransactionRequest, background_tasks: BackgroundTasks):
     threshold = metadata["threshold"]
     decision = "BLOCK" if prob_calibrated >= threshold else "ALLOW"
 
-    shap_values = _state["explainer"].shap_values(X)
-    if isinstance(shap_values, list):
+    if SHAP_AVAILABLE and _state["explainer"] is not None:
+     shap_values = _state["explainer"].shap_values(X)
+     if isinstance(shap_values, list):
         row_shap = shap_values[-1][0]
-    else:
+     else:
         row_shap = shap_values[0]
-
-    order = np.argsort(-np.abs(row_shap))[:5]
-    top_features = [
+     order = np.argsort(-np.abs(row_shap))[:5]
+     top_features = [
         SHAPContribution(
             feature=X.columns[i],
             value=float(X.iloc[0, i]),
             shap_contribution=float(row_shap[i]),
         )
         for i in order
-    ]
-
+        ]
+    else:
+     top_features = []
+     
     latency_ms = (time.perf_counter() - start) * 1000
 
     background_tasks.add_task(

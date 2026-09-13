@@ -1,16 +1,16 @@
-import matplotlib.pyplot as plt
+from pathlib import Path
+import json
+import numpy as np
+import pandas as pd
 from sklearn.calibration import calibration_curve
 from sklearn.isotonic import IsotonicRegression
 from sklearn.linear_model import LogisticRegression
 from xgboost import XGBClassifier
-from pathlib import Path
-import json
-import pandas as pd
-import numpy as np
+
 from fraud.data import get_engine, load_data
-from fraud.features import build_feature_matrix, fit_median_impute
-from fraud.evaluations.splits import temporal_split
 from fraud.evaluations.metrics import compute_metrics
+from fraud.evaluations.splits import temporal_split
+from fraud.features import build_feature_matrix, fit_median_impute
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -32,6 +32,8 @@ def load_winning_model():
 
 
 def run():
+    import matplotlib.pyplot as plt
+
     engine = get_engine()
     df = load_data(engine)
     train_df, val_df, test_df = temporal_split(df, dt_col="txn_ts")
