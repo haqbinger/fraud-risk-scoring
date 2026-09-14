@@ -56,7 +56,7 @@ This is the right separation of concerns. The application does not talk to `loca
 
 ## The real win in M9
 
-The real achievement in M9 was not a smaller image or a prettier Dockerfile. It was making the entire runtime chain reproducible and robust:
+Not a smaller image or a prettier Dockerfile, but a reproducible, robust runtime chain:
 
 - Python version matches the dependency floor
 - dependency pins remove silent drift

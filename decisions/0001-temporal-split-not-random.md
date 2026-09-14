@@ -27,15 +27,9 @@ actual performance.
 identical features, varying only the split strategy, and reports the
 PR-AUC gap between them.
 
-Result:
-[## The experiment
-`scripts/random_vs_temporal.py` trains the identical model on the
-identical features, varying only the split strategy, and reports the
-PR-AUC gap between them.
-
 Result: random split PR-AUC = 0.1876, temporal split PR-AUC = 0.1593.
 Gap = 0.0283 PR-AUC points (~17.8% relative overestimation from random
-splitting on this dataset, with a LogisticRegression baseline).]
+splitting on this dataset, with a LogisticRegression baseline).
 
 Model Test PR-AUC vs. random-guess baseline (~0.035)
 LogisticRegression ---> 0.1086 ~3.1x better

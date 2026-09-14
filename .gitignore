@@ -12,7 +12,6 @@ src/reports/
 tests/
 notebooks/
 REVIEW_QUESTIONS/
-*.md
 .vscode/
 .env
 src/fraud.egg-info/

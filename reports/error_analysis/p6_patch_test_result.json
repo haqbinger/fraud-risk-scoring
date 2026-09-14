@@ -1,0 +1,13 @@
+{
+  "ceiling_val_pr_auc": 0.6741,
+  "patch_val_pr_auc": 0.6673300626828401,
+  "delta": -0.006769937317159913,
+  "absorb_threshold": 0.005,
+  "verdict": "no_lift_revert",
+  "new_columns": [
+    "product_cd_te_fraud_rate",
+    "product_cd_te_txn_count",
+    "card4_hist_legit_rate",
+    "card4_hist_txn_count"
+  ]
+}
