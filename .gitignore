@@ -16,3 +16,4 @@ REVIEW_QUESTIONS/
 .vscode/
 .env
 src/fraud.egg-info/
+.claude

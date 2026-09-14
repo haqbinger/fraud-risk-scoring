@@ -37,37 +37,62 @@ def build_xy(df: pd.DataFrame, feature_cols, cat_cols, categories_map: dict):
     return X, y
 
 
+def load_selected_features(path: str = SELECTED_FEATURES_PATH):
+    with open(path, encoding="utf-8") as fh:
+        return [line.strip() for line in fh if line.strip()]
+
+
+def load_data_splits(engine=None):
+    """(train_full, val_full, cv_pool) -- the P2 single train/val split plus
+    their concatenation for CV. test set is loaded by temporal_split() but
+    discarded here and never touched by any caller of this function."""
+    engine = engine or get_engine()
+    df = load_data(engine)
+    train_full, val_full, _test_full = temporal_split(df, dt_col="txn_ts")
+    del _test_full
+    cv_pool = pd.concat([train_full, val_full], ignore_index=True)
+    return train_full, val_full, cv_pool
+
+
+def load_cv_pool(engine=None) -> pd.DataFrame:
+    _, _, cv_pool = load_data_splits(engine)
+    return cv_pool
+
+
+def make_rolling_folds(cv_pool: pd.DataFrame, n_folds: int = N_FOLDS):
+    """6 equal-sized chronological blocks -> n_folds (train_df, val_df) pairs,
+    each fold's val block immediately following its train block (rolling
+    window, train/val sizes fixed and equal across folds, no gap)."""
+    n = len(cv_pool)
+    n_blocks = n_folds + 1
+    block_size = n // n_blocks
+    block_bounds = [i * block_size for i in range(n_blocks)] + [n]  # last block absorbs remainder
+
+    folds = []
+    for fold in range(n_folds):
+        train_start, train_end = block_bounds[fold], block_bounds[fold + 1]
+        val_start, val_end = block_bounds[fold + 1], block_bounds[fold + 2]
+        folds.append((cv_pool.iloc[train_start:train_end], cv_pool.iloc[val_start:val_end]))
+    return folds, block_size
+
+
 def main():
     os.makedirs(REPORT_DIR, exist_ok=True)
 
-    with open(SELECTED_FEATURES_PATH, encoding="utf-8") as fh:
-        selected_features = [line.strip() for line in fh if line.strip()]
+    selected_features = load_selected_features()
     cat_cols = [c for c in CAT_COLS if c in selected_features]
     print(f"Loaded {len(selected_features)} selected features from {SELECTED_FEATURES_PATH} "
           f"({len(cat_cols)} categorical).")
 
-    engine = get_engine()
-    df = load_data(engine)
-    train_full, val_full, _test_full = temporal_split(df, dt_col="txn_ts")
-    del _test_full  # P3 is CV over train+val only -- test set is loaded but never touched
-
-    cv_pool = pd.concat([train_full, val_full], ignore_index=True)
+    cv_pool = load_cv_pool()
+    folds, block_size = make_rolling_folds(cv_pool, N_FOLDS)
     n = len(cv_pool)
-    n_blocks = N_FOLDS + 1
-    block_size = n // n_blocks
-    block_bounds = [i * block_size for i in range(n_blocks)] + [n]  # last block absorbs remainder
 
-    print(f"\nCV pool (train+val, test excluded): {n} rows -> {n_blocks} equal blocks of ~{block_size} rows")
+    print(f"\nCV pool (train+val, test excluded): {n} rows -> {N_FOLDS + 1} equal blocks of ~{block_size} rows")
     print(f"Rolling CV: {N_FOLDS} folds, each fold's val block immediately follows its train block.\n")
 
     fold_results = []
-    for fold in range(N_FOLDS):
-        train_start, train_end = block_bounds[fold], block_bounds[fold + 1]
-        val_start, val_end = block_bounds[fold + 1], block_bounds[fold + 2]
-
-        train_df = cv_pool.iloc[train_start:train_end]
-        val_df = cv_pool.iloc[val_start:val_end]
-
+    for fold_idx, (train_df, val_df) in enumerate(folds):
         categories_map = {c: sorted(train_df[c].dropna().unique().tolist()) for c in cat_cols}
         X_train, y_train = build_xy(train_df, selected_features, cat_cols, categories_map)
         X_val, y_val = build_xy(val_df, selected_features, cat_cols, categories_map)
@@ -80,14 +105,14 @@ def main():
         val_pr_auc = average_precision_score(y_val, val_prob)
 
         result = {
-            "fold": fold + 1,
+            "fold": fold_idx + 1,
             "train_size": len(train_df),
             "val_size": len(val_df),
             "val_pr_auc": val_pr_auc,
             "fit_time_s": fit_time_s,
         }
         fold_results.append(result)
-        print(f"Fold {fold + 1}/{N_FOLDS}: train={len(train_df):>7} | val={len(val_df):>7} | "
+        print(f"Fold {fold_idx + 1}/{N_FOLDS}: train={len(train_df):>7} | val={len(val_df):>7} | "
               f"val PR-AUC={val_pr_auc:.4f} | fit_time={fit_time_s:.1f}s | "
               f"train window [{train_df['txn_ts'].min()} .. {train_df['txn_ts'].max()}] | "
               f"val window [{val_df['txn_ts'].min()} .. {val_df['txn_ts'].max()}]")
