@@ -1,16 +1,16 @@
-# ADR V2-0003: P3 Temporal Cross-Validation
+ADR V2-0003: P3 Temporal Cross-Validation
 
-## Status
+Status
 
 Accepted
 
-## Method
+Method
 
 5-fold rolling temporal CV on 182-feature set (selected_features.txt).
 Each fold's val window strictly after train window, split by transaction count.
 XGBoost default hyperparams (same as P2 kitchen-sink for fair comparison).
 
-## Results
+Results
 
 | Fold | Train window  | Val window    | Val PR-AUC |
 | ---- | ------------- | ------------- | ---------- |
@@ -22,8 +22,8 @@ XGBoost default hyperparams (same as P2 kitchen-sink for fair comparison).
 
 Mean PR-AUC: 0.5642 ± 0.0287 (min 0.5406, max 0.5979)
 
-## Verdict
+Verdict
 
 RELIABLE. P2 single-split val PR-AUC 0.5888 is within 0.0246 of CV mean (threshold 0.03). Std 0.0287 under 0.05 tolerance. Single-split was not a lucky draw.
 
-## Key Finding — Seasonal
+Key Finding — Seasonal

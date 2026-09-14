@@ -23,9 +23,6 @@ os.makedirs(REPORT_DIR, exist_ok=True)
 
 engine = create_engine(DB_URL)
 
-# ---------------------------------------------------------------------------
-# 1. Column inventory from information_schema
-# ---------------------------------------------------------------------------
 with engine.connect() as conn:
     cols_df = pd.read_sql(
         text(
@@ -60,9 +57,6 @@ print(f"V-columns: {len(v_cols)}")
 print(f"Categorical columns: {len(categorical_cols)}")
 print(f"Non-V numeric columns: {len(numeric_non_v_cols)}")
 
-# ---------------------------------------------------------------------------
-# 2. Missingness rate for ALL V-cols in a single SQL pass
-# ---------------------------------------------------------------------------
 if v_cols:
     select_clauses = ",\n".join(
         f'SUM(CASE WHEN "{c}" IS NULL THEN 1 ELSE 0 END)::float / COUNT(*) AS "{c}"'
@@ -86,9 +80,6 @@ if v_cols:
 else:
     missing_series = pd.Series(dtype=float)
 
-# ---------------------------------------------------------------------------
-# 3. Cardinality + null_rate for categorical columns
-# ---------------------------------------------------------------------------
 cardinality_rows = []
 with engine.connect() as conn:
     for c in categorical_cols:
@@ -107,9 +98,6 @@ with engine.connect() as conn:
 cardinality_df = pd.DataFrame(cardinality_rows).sort_values("cardinality", ascending=False)
 cardinality_df.to_csv(f"{REPORT_DIR}/cardinality_table.csv", index=False)
 
-# ---------------------------------------------------------------------------
-# 4. Univariate AUC proxy via Mann-Whitney U (rank-based), sampled at 20%
-# ---------------------------------------------------------------------------
 candidate_cols = numeric_non_v_cols + v_cols[::5]
 
 sample_cols = ", ".join(f'"{c}"' for c in candidate_cols)
@@ -151,9 +139,6 @@ plt.tight_layout()
 fig.savefig(f"{REPORT_DIR}/top20_signal.png", dpi=150)
 plt.close(fig)
 
-# ---------------------------------------------------------------------------
-# 5. Summary
-# ---------------------------------------------------------------------------
 print("\n=== EDA P0 Summary ===")
 print(f"Total columns: {len(all_cols)}")
 print(f"V-columns: {len(v_cols)}")

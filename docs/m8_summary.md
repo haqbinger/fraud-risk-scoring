@@ -1,6 +1,6 @@
-# M8 Summary: Prediction logging and test architecture
+M8 Summary: Prediction logging and test architecture
 
-## What M8 actually delivers
+What M8 actually delivers
 
 M8 did not just add tests; it added a disciplined operating model for the serving layer.
 
@@ -11,11 +11,11 @@ M8 did not just add tests; it added a disciplined operating model for the servin
 
 Together, these files enforce a separation of concerns: API logic, artifact integrity, leakage safety, and schema correctness are each tested under the right assumptions.
 
-## Why DDL extraction mattered
+Why DDL extraction mattered
 
 The log table DDL was moved out of the Python string in `main.py` into `sql/prediction_logs.sql` and is executed from there at startup. This matters because the database schema is part of the system state and should be versioned like code. An inline DDL string is invisible to code review, invisible to schema diffing, and easy to forget when debugging production drift. If SQL lives in `sql/`, it becomes inspectable, reviewable, and reproducible.
 
-## The bug that mattered most
+The bug that mattered most
 
 The live bug in M8 was subtle but important: `_log_prediction` called `engine.connect()` unconditionally. In the hermetic fake state, `engine` was `None`, and the background task raised an exception that propagated through Starlette TestClient and failed the whole request. That is exactly the wrong failure mode for logging.
 
@@ -27,13 +27,13 @@ The fix was simple but operationally crucial:
 
 This is the right behavior for a production API: a logging failure should not take down a fraud decision. It also taught us a better way to test background tasks: the test must verify that logging faults are isolated instead of allowing exceptions to escape the request lifecycle.
 
-## The schema test correction
+The schema test correction
 
 The `test_schema.py` correction is a useful meta-point. The assertion initially treated `transaction_amt` as if it lived in the feature SQL table, but the actual runtime join in `data.py` brings that field from the transactions table at query time. This was a mistake in the test assumption, not in the application logic.
 
 That is exactly why tests matter: they can catch wrong beliefs about the data model before those beliefs spread into future code. The correction sharpened the boundary between SQL feature logic and the runtime query composition.
 
-## The skip-not-fail philosophy
+The skip-not-fail philosophy
 
 The project uses skip, not fail, for database-dependent tests when Postgres is not reachable. That has a real benefit: CI can remain green on a laptop or build agent without Docker, and the suite still runs when the database is available. It also keeps local developer workflows practical.
 

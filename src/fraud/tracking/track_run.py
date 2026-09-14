@@ -32,7 +32,6 @@ def run():
 
     with mlflow.start_run(run_name="xgboost-m3-m4-tracked"):
 
-        # --- dataset metadata ---
         engine = get_engine()
         df = load_data(engine)
         train_df, val_df, test_df = temporal_split(df, dt_col="txn_ts")
@@ -46,7 +45,6 @@ def run():
             f"{train_df['txn_ts'].min()} to {train_df['txn_ts'].max()}",
         )
 
-        # --- model hyperparameters ---
         model = load_winning_model()
         xgb_params = model.get_params()
         print("Loaded model params (verify these aren't silently-reset defaults):")
@@ -64,7 +62,6 @@ def run():
                 mlflow.log_param(k, xgb_params[k])
         mlflow.log_param("random_state", RANDOM_STATE)
 
-        # --- calibration ---
         cal_results = run_calibration()
         for method in ["uncalibrated", "platt", "isotonic"]:
             m = cal_results[method][1]
@@ -76,7 +73,6 @@ def run():
         mlflow.log_param("cost_false_positive", COST_FALSE_POSITIVE)
         mlflow.log_param("max_review_rate", MAX_REVIEW_RATE)
 
-        # --- threshold optimization ---
         best_feasible, sensitivity_df = run_threshold_optimization()
         mlflow.log_metric("optimal_threshold", best_feasible["threshold"])
         mlflow.log_metric("optimal_total_cost", best_feasible["total_cost"])
@@ -84,10 +80,8 @@ def run():
         mlflow.log_metric("optimal_fp", best_feasible["fp"])
         mlflow.log_metric("optimal_review_rate", best_feasible["review_rate"])
 
-        # --- traceability ---
         mlflow.set_tag("git_commit", get_git_commit())
 
-        # --- artifacts ---
         for fname in [
             "calibration_curves.png",
             "threshold_cost_curve.png",

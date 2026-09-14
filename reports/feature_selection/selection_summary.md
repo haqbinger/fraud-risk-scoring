@@ -1,4 +1,4 @@
-# P2 Feature Selection Summary
+P2 Feature Selection Summary
 
 - Kitchen sink features: 419
 - Kitchen sink val PR-AUC (ceiling): 0.5796
@@ -8,13 +8,13 @@
 - Features kept: 182
 - Features dropped: 237
 
-## Drop reasons (counts)
+Drop reasons (counts)
 
 - gain_importance < 0.0001: 110
 - permutation_importance < 0: 71
 - correlation > 0.95: 56
 
-## Dropped features
+Dropped features
 
 - `velocity_5min`: gain_importance < 0.0001
 - `velocity_30min`: gain_importance < 0.0001

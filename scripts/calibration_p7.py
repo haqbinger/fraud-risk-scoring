@@ -75,9 +75,6 @@ def main():
     val_raw_prob = model.predict_proba(X_val)[:, 1]
     y_val = np.asarray(y_val)
 
-    # ------------------------------------------------------------------
-    # 1. Calibration
-    # ------------------------------------------------------------------
     print("\nCalibrating (5-fold cross_val_predict on val, to avoid overfitting the calibrator to val) ...")
     cv = StratifiedKFold(n_splits=N_CV_FOLDS, shuffle=True, random_state=RANDOM_STATE)
 
@@ -134,9 +131,6 @@ def main():
     fig.savefig(f"{REPORT_DIR}/reliability_diagram.png", dpi=150)
     plt.close(fig)
 
-    # ------------------------------------------------------------------
-    # 2. Threshold optimization (on calibrated val probabilities)
-    # ------------------------------------------------------------------
     n_steps = round((THRESH_MAX - THRESH_MIN) / THRESH_STEP) + 1
     sweep_df = sweep_thresholds(
         y_val, calibrated_val_prob, COST_FALSE_NEGATIVE, COST_FALSE_POSITIVE,
@@ -178,9 +172,6 @@ def main():
     fig.savefig(f"{REPORT_DIR}/threshold_cost_curve.png", dpi=150)
     plt.close(fig)
 
-    # ------------------------------------------------------------------
-    # 3. FINAL TEST SET EVALUATION -- one time, never again.
-    # ------------------------------------------------------------------
     print("\n" + "=" * 60)
     print("OPENING THE TEST SET -- final, one-time, honest evaluation")
     print("=" * 60)

@@ -1,4 +1,4 @@
-# P4 Hyperparameter Tuning Summary
+P4 Hyperparameter Tuning Summary
 
 - Trials: 50 (10 parallel)
 - Total tuning time: 2610.9s (43.5 min)
@@ -8,7 +8,7 @@
 - Val PR-AUC (best config, single split, same as P2): 0.6317
 - Final model fit time (full train split): 353.6s
 
-## Best params
+Best params
 
 ```json
 {

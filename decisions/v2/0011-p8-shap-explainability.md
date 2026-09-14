@@ -1,15 +1,15 @@
-# ADR V2-0011: P8 SHAP Explainability
+ADR V2-0011: P8 SHAP Explainability
 
-## Status
+Status
 
 Accepted
 
-## Method
+Method
 
 TreeExplainer on uncalibrated LightGBM model (SHAP operates on raw model output, not calibrated probabilities — per V1 ADR 0007 policy, preserved in V2).
 Val set only. 15 outputs: global beeswarm, importance bar chart, 12 waterfall plots (3x TP/FP/FN/borderline).
 
-## Top 10 Features by Mean |SHAP|
+Top 10 Features by Mean |SHAP|
 
 | Rank | Feature                    | Mean abs SHAP |
 | ---- | --------------------------- | ------------- |
@@ -26,28 +26,28 @@ Val set only. 15 outputs: global beeswarm, importance bar chart, 12 waterfall pl
 
 card1_te_fraud_rate dominates at 2x the runner-up — the P1 leakage-safe target encoding decision accounts for the majority of model signal.
 
-## Key Findings
+Key Findings
 
-### False Positive Root Cause
+False Positive Root Cause
 
 Val rows 69234/69236 (FP) and 1710/1715 (TP) are near-adjacent indices, both driven by card1_te_fraud_rate + C1. Classic expanding-window target encoding failure mode: once a card has confirmed fraud, its historical fraud-rate spikes for all subsequent transactions on that card — model flags legitimate follow-up activity on the same card ("guilt by association"). Quantitative verification recommended if FP analysis is revisited.
 
-### False Negative Root Cause
+False Negative Root Cause
 
 Missed frauds show negative SHAP contributions from V313, D13, D8 (anonymized Vesta/time-delta features actively pushing toward "legitimate"), overriding card1_te_fraud_rate's fraud signal. Model loses when anonymized behavioral features disagree with card-level risk history.
 
-## Decision
+Decision
 
 P8 complete. All findings cross-referenced in p8_shap_summary.md against P6 blind-spot analysis. V2 model pipeline finalized — proceed to infrastructure update (save artifacts, redeploy to Render).
 
-## Artifacts
+Artifacts
 
 reports/figures/:
 
 - p8_shap_global_summary.png
 - p8_shap_importance.png
-- p8*waterfall_tp*{1,2,3}.png
-- p8*waterfall_fp*{1,2,3}.png
-- p8*waterfall_fn*{1,2,3}.png
-- p8*waterfall_borderline*{1,2,3}.png
+- p8waterfall_tp{1,2,3}.png
+- p8waterfall_fp{1,2,3}.png
+- p8waterfall_fn{1,2,3}.png
+- p8waterfall_borderline{1,2,3}.png
 - p8_shap_summary.md

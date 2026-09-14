@@ -1,9 +1,9 @@
-# ADR 0008 — Serving architecture for leakage-safe fraud inference
+ADR 0008 — Serving architecture for leakage-safe fraud inference
 
-**Status:** Accepted
-**Milestone:** M7
+Status: Accepted
+Milestone: M7
 
-## Context
+Context
 
 Milestone 7 completed the production-facing serving layer for the fraud model. The system is built around a FastAPI application that receives transaction requests, computes the leakage-safe features required by the model at inference time, and returns a calibrated fraud probability plus an explainability payload.
 
@@ -19,7 +19,7 @@ The final serving contract is:
 
 With a threshold of 0.14, consistent with the cost-sensitive threshold decision in ADR 0006.
 
-## Decision
+Decision
 
 We will serve predictions using a live inference path that computes the required features in Postgres for each request, rather than relying on precomputed features or a dedicated feature store.
 
@@ -36,13 +36,13 @@ We will also persist the calibration and metadata artifacts separately from the 
 - `platt_calibrator.joblib`
 - `model_metadata.json`
 
-This allows the FastAPI service to load the threshold, category maps, medians, and feature columns without rerunning training code or reconstructing the training state on demand.
+The FastAPI service loads the threshold, category maps, medians, and feature columns from these at startup, without rerunning training code or reconstructing training state on demand.
 
 For explainability, we will compute SHAP values per request using `TreeExplainer` on the raw XGBoost output, not on the Platt-calibrated probability. This follows ADR 0007: SHAP explains the model’s decision path, while calibration explains the confidence adjustment applied to the score.
 
 Prediction logging will be handled via FastAPI `BackgroundTasks`, so the API can return the prediction response without waiting for database logging or network-side persistence work to complete, keeping the client-facing latency low.
 
-## Alternatives considered
+Alternatives considered
 
 1. Precomputed feature tables
    - Pros: lower latency at inference time.
@@ -60,7 +60,7 @@ Prediction logging will be handled via FastAPI `BackgroundTasks`, so the API can
    - Pros: simple implementation.
    - Cons: adds latency to the user-visible response and makes serving less robust under load or slow storage.
 
-## Consequences
+Consequences
 
 - The API enforces the same leakage-safe logic at inference time as in the training SQL feature logic.
 - The system is correct but not yet the lowest-latency production design; each prediction performs two live Postgres lookups.

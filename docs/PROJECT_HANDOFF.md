@@ -1,10 +1,10 @@
-# Fraud Risk Scoring — Project Handoff Document
+Fraud Risk Scoring — Project Handoff Document
 
-# V1 COMPLETE — Starting V2 in fresh session
+V1 COMPLETE — Starting V2 in fresh session
 
 ---
 
-## V1 STATUS
+V1 STATUS
 
 Tag: v1.0-baseline
 GitHub: https://github.com/haqbinger/fraud-risk-scoring
@@ -14,7 +14,7 @@ M0-M13 complete. Model PR-AUC: 0.22 (20/394 features — V2 fixes this).
 
 ---
 
-## V2 PRIORITY — DO THIS FIRST, BEFORE ANYTHING ELSE
+V2 PRIORITY — DO THIS FIRST, BEFORE ANYTHING ELSE
 
 The model uses 20 features out of 394 available. V/C/D/M columns sit
 in raw_transaction in Postgres, unused. Expected PR-AUC after full
@@ -22,7 +22,7 @@ feature engineering: 0.55-0.70. Follow Roadmap V2 (P0-P8) below.
 
 ---
 
-## Environment
+Environment
 
 - Windows 11, PowerShell
 - Python 3.11 locally, Python 3.12 in Docker (xgboost 3.4.1 requires >=3.12)
@@ -41,7 +41,7 @@ python -c "from fraud.data import load_data; df = load_data(); print(df.shape)"
 
 ---
 
-## Actual file structure (verified 2026-09-13)
+Actual file structure (verified 2026-09-13)
 
 fraud-risk-scoring/
 ├── .env.example
@@ -105,12 +105,12 @@ fraud-risk-scoring/
 │ │ └── threshold_optimization.py
 │ │
 │ ├── fraud/ # main package (pip install -e .)
-│ │ ├── **init**.py
+│ │ ├── init.py
 │ │ ├── config.py # DB_URL, RANDOM_STATE, costs, MAX_REVIEW_RATE
 │ │ ├── data.py # load_data() — features_m1 JOIN transactions
 │ │ ├── features.py # build_feature_matrix(), fit_median_impute()
 │ │ ├── api/
-│ │ │ ├── **init**.py
+│ │ │ ├── init.py
 │ │ │ ├── main.py # FastAPI: /predict /health /model
 │ │ │ ├── schemas.py # Pydantic v2 request/response models
 │ │ │ └── serving.py # build_live_feature_vector() — live Postgres queries
@@ -118,10 +118,10 @@ fraud-risk-scoring/
 │ │ │ ├── splits.py # temporal_split(), random_split()
 │ │ │ └── metrics.py # compute_metrics(), precision_at_recall()
 │ │ ├── explainability/
-│ │ │ ├── **init**.py
+│ │ │ ├── init.py
 │ │ │ └── explain.py # SHAP global + local (TP/FP/borderline)
 │ │ └── tracking/
-│ │ ├── **init**.py
+│ │ ├── init.py
 │ │ └── track_run.py # MLflow logging
 │ │
 │ └── reports/
@@ -138,7 +138,7 @@ fraud-risk-scoring/
 
 ---
 
-## Requirements (pinned, verified working)
+Requirements (pinned, verified working)
 
 requirements.txt (full dev):
 pandas==3.0.5, sqlalchemy==2.0.52, psycopg2-binary==2.9.13,
@@ -153,7 +153,7 @@ joblib, fastapi, uvicorn[standard], httpx
 
 ---
 
-## V1 results (real numbers, verified on 590,540 rows)
+V1 results (real numbers, verified on 590,540 rows)
 
 Fraud rate: 3.499%
 Temporal split: train 413,378 / val 88,581 / test 88,581
@@ -184,7 +184,7 @@ M10 Render: /health and /model live at render URL above
 
 ---
 
-## Key architectural decisions (ADRs 0001-0010)
+Key architectural decisions (ADRs 0001-0010)
 
 ADR 0001: Temporal split. Gap: 0.0283 PR-AUC.
 ADR 0002: card1=customer proxy, device_info=device proxy. NULL cold-start.
@@ -199,7 +199,7 @@ ADR 0010: Single-stage Docker build, pinned requirements, sql/ in image.
 
 ---
 
-## Known tech debt (fix in V2)
+Known tech debt (fix in V2)
 
 1. src/reports/figures/ vs reports/figures/ — SHAP plots in wrong location
 2. calibration/ not inside fraud package — inconsistent with rest of src/fraud/
@@ -211,7 +211,7 @@ ADR 0010: Single-stage Docker build, pinned requirements, sql/ in image.
 
 ---
 
-## V2 Roadmap (P0-P8) — model first, infrastructure last
+V2 Roadmap (P0-P8) — model first, infrastructure last
 
 FIRST: verify transactions table column count:
 docker exec fraud_risk_pg psql -U fraud -d fraud_db -c \
@@ -268,7 +268,7 @@ save_model_artifacts.py → retrain → redeploy to Render
 
 ---
 
-## What to tell Claude at the start of V2 session
+What to tell Claude at the start of V2 session
 
 Paste this entire document, then say:
 

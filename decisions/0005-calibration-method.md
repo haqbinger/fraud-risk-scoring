@@ -1,9 +1,9 @@
-# ADR 0005: Calibration method selection
+ADR 0005: Calibration method selection
 
 - Status: Accepted
 - Date: 2026-09-13
 
-## Context
+Context
 
 The winning model from the model comparison step is XGBoost. The calibration pipeline compares three probability post-processing strategies:
 
@@ -19,11 +19,11 @@ The calibration script prints the key rule explicitly:
 
 This is expected behavior. Calibration is a monotonic transformation of the score scale. It changes the probability values but should not materially reorder the examples.
 
-## Decision
+Decision
 
 We selected Platt scaling.
 
-## Why
+Why
 
 On the validation/test split used in the project:
 
@@ -38,12 +38,12 @@ This is the important comparison:
 - The project explicitly preserves ranking quality as a guardrail before accepting a lower Brier score.
 - Therefore, the calibration method selected is Platt, because it improves calibration without hurting ranking performance.
 
-## Consequences
+Consequences
 
 - We keep the ranking structure of the model unchanged.
 - The probability outputs are materially more trustworthy for expected-cost optimization.
 - Thresholds chosen downstream are based on calibrated probabilities rather than poorly calibrated raw XGBoost scores.
 
-## Notes
+Notes
 
 This is a case where calibration quality and ranking quality are intentionally treated separately. A better-calibrated model is only acceptable if it does not materially degrade the ordering signal that the fraud model is using for prioritization.

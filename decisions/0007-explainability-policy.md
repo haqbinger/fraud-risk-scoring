@@ -1,9 +1,9 @@
-# ADR 0007: Explainability policy for SHAP-backed fraud scoring
+ADR 0007: Explainability policy for SHAP-backed fraud scoring
 
 - Status: Accepted
 - Date: 2026-09-13
 
-## Context
+Context
 
 M5 adds SHAP-based explainability on top of the fraud model. This is important for model governance, stakeholder communication, and interviews, but it introduces a common misunderstanding:
 
@@ -13,7 +13,7 @@ M5 adds SHAP-based explainability on top of the fraud model. This is important f
 
 This distinction matters because fraud models are often reviewed by non-technical stakeholders who are tempted to read SHAP results as cause-and-effect statements.
 
-## Decision
+Decision
 
 We will explain SHAP output using the following language:
 
@@ -27,19 +27,19 @@ We will not use language such as:
 - “X indicates fraud”
 - “X is the reason the transaction was fraudulent”
 
-## Why
+Why
 
 This project is about fraud-risk scoring, not causal attribution. A feature may be strongly predictive of fraud without being a direct causal mechanism in the real world. For example, a high transaction amount or suspicious device history may raise the model score even when the transaction is ultimately legitimate.
 
 SHAP is therefore a model-interpretation tool, not a fraud-investigation or causal-analysis tool.
 
-## Consequences
+Consequences
 
 - All documentation and write-ups must phrase results as model reliance, not causality.
 - The false-positive example is explicitly treated as a model-weighting case, not as proof of fraud behavior.
 - This keeps the model explainable without overstating what the model actually knows.
 
-## Operational interpretation
+Operational interpretation
 
 In the final explainability report:
 
@@ -49,7 +49,7 @@ In the final explainability report:
 
 This preserves scientific honesty and makes the model easier to defend in interviews and governance reviews.
 
-## Summary
+Summary
 
 The policy is simple:
 

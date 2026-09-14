@@ -1,9 +1,9 @@
-# 0001 — Chronological split, not random split
+0001 — Chronological split, not random split
 
-**Status:** Accepted
-**Milestone:** M2
+Status: Accepted
+Milestone: M2
 
-## Context
+Context
 
 Random train/test splitting is standard practice for most ML problems,
 but this dataset has a time dimension that matters: a card's velocity
@@ -12,7 +12,7 @@ time order. Randomly shuffling rows across train/test breaks that
 structure — a transaction that's chronologically "in the future" of the
 model's real deployment scenario can end up in the training set.
 
-## Decision
+Decision
 
 Use a chronological split (first 70% by `txn_ts` = train, next 15% =
 val, last 15% = test) for every reported model result from M2 onward.
@@ -21,7 +21,7 @@ Random split is kept in the codebase (`evaluation/split.py`,
 below — never to produce a number that gets reported as this project's
 actual performance.
 
-## The experiment
+The experiment
 
 `scripts/random_vs_temporal.py` trains the identical model on the
 identical features, varying only the split strategy, and reports the
@@ -35,7 +35,7 @@ Model Test PR-AUC vs. random-guess baseline (~0.035)
 LogisticRegression ---> 0.1086 ~3.1x better
 RandomForest ---> 0.2078 ~5.9x better
 
-## Why the gap exists specifically here
+Why the gap exists specifically here
 
 Card-level velocity/history features (`velocity_5min`, `card1_hist_avg_amt`,
 etc.) are the highest-value features in this project, and they're also
@@ -46,7 +46,7 @@ behavior via features computed from its past — except that past isn't
 actually past relative to the random test set the way it would be in
 production.
 
-## Consequences
+Consequences
 
 Every model comparison in M3, threshold selection in M4, and the served
 API in M7 are evaluated exclusively on chronologically-held-out data.

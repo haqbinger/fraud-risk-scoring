@@ -1,9 +1,9 @@
-# 0004 — Final model selection: XGBoost
+0004 — Final model selection: XGBoost
 
-**Status:** Accepted
-**Milestone:** M3
+Status: Accepted
+Milestone: M3
 
-## Context
+Context
 
 Compared Logistic Regression, Random Forest, and XGBoost on the same
 temporal split, same feature matrix, same train-median imputation
@@ -20,7 +20,7 @@ Fit time: LogisticRegression 0.81s, RandomForest 64.49s, XGBoost 8.29s.
 TEST PR-AUC (XGBoost only, evaluated once, after selection was already
 locked in on val): 0.2189.
 
-## Decision
+Decision
 
 XGBoost. It beats RandomForest by 0.0231 PR-AUC points (~11.1% relative)
 on val, and beats LogisticRegression by 0.0719 points (~45.1% relative).
@@ -34,18 +34,18 @@ XGBoost's larger hyperparameter surface (n_estimators, max_depth,
 learning_rate, subsample, colsample_bytree all set here, none tuned yet)
 — more knobs to justify if asked "why these settings" in an interview.
 
-## Alternatives considered
+Alternatives considered
 
-- **Logistic Regression** — most interpretable (coefficients directly
+- Logistic Regression — most interpretable (coefficients directly
   readable), fastest to train, but clearly the weakest PR-AUC — real
   signal, underfits the nonlinear interactions in the velocity/history
   features.
-- **Random Forest** — solid PR-AUC, no scaling needed, reasonably
+- Random Forest — solid PR-AUC, no scaling needed, reasonably
   interpretable via feature importances — but ~8x slower to train than
   XGBoost for a worse PR-AUC. No scenario here where RandomForest is the
   better choice.
 
-## Consequences
+Consequences
 
 XGBoost is the model served in M7 and explained in M5. SHAP's
 `TreeExplainer` has fast, first-class support for XGBoost specifically —

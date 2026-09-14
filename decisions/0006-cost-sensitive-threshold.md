@@ -1,9 +1,9 @@
-# ADR 0006: Cost-sensitive thresholding under operational review constraints
+ADR 0006: Cost-sensitive thresholding under operational review constraints
 
 - Status: Accepted
 - Date: 2026-09-13
 
-## Context
+Context
 
 The calibrated model produces probabilities that are useful for expected-cost optimization. However, the threshold is not a property of the model alone; it is a property of the business cost model and operational capacity.
 
@@ -21,11 +21,11 @@ These values represent a realistic fraud-operation policy:
 
 This policy matters because a raw cost minimization without a review cap would push the threshold toward the lower bound and effectively flag too much traffic.
 
-## Decision
+Decision
 
 We select the cost-aware threshold by minimizing expected cost under the constraint that review rate does not exceed 5%.
 
-## Result
+Result
 
 Using the final cost assumptions and operational cap:
 
@@ -42,7 +42,7 @@ Compared with the naive threshold of 0.5:
 
 This is both operationally feasible and materially better than the naive decision rule.
 
-## Why this is the right threshold
+Why this is the right threshold
 
 The model itself is not “bad” because it pushes the threshold lower under a different cost function. The threshold is a consequence of the commercial objective:
 
@@ -51,13 +51,13 @@ The model itself is not “bad” because it pushes the threshold lower under a 
 
 This is not a bug in the optimization pipeline; it is a policy decision encoded in the cost model.
 
-## Consequences
+Consequences
 
 - We do not use a fixed threshold like 0.5 as a default business rule.
 - We choose thresholds based on expected cost and review capacity.
 - The threshold can change meaningfully if the business rebalances false-positive vs false-negative cost assumptions.
 
-## Sensitivity summary
+Sensitivity summary
 
 From the generated sensitivity table:
 

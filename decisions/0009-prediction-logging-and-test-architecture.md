@@ -1,9 +1,9 @@
-# ADR 0009 — Prediction logging and test architecture
+ADR 0009 — Prediction logging and test architecture
 
-**Status:** Accepted
-**Milestone:** M8
+Status: Accepted
+Milestone: M8
 
-## Context
+Context
 
 M8 operationalized the serving layer by making prediction logging and the test harness explicit, versioned, and robust. The project already had a live API that could score transactions and return explanations, but it still had a gap between “works in a notebook” and “works under production conditions.” The main operational concern was the prediction log table: it needed to be created reproducibly, versioned in SQL, and kept aligned with the API contract. This table also feeds later monitoring and drift work, so its schema matters beyond the request path.
 
@@ -13,7 +13,7 @@ During live testing, one real bug surfaced: the logging helper called `engine.co
 
 The schema also needed to reflect the actual data model. A test initially asserted that `transaction_amt` lived in the feature SQL table, but the real runtime join path in `data.py` brings that field from the transaction table at query time. That was a test assumption, not a production bug, but it was still worth fixing because it revealed how easy it is to test the wrong layer.
 
-## Decision
+Decision
 
 We will define the prediction log table DDL in `sql/prediction_logs.sql` and have the application read and execute that file at startup. This is the single source of truth for the schema. Keeping the SQL in `sql/` makes it visible to version control, reviewable in pull requests, and consistent with the project’s broader principle that SQL belongs in the SQL folder rather than hidden inside Python strings.
 
@@ -42,7 +42,7 @@ We will split the test suite into four separate files with clear dependency boun
 
 Database-dependent tests will use skip semantics instead of fail-fast behavior when Postgres is unavailable. This keeps CI green on a machine without Docker and still allows the tests to catch real issues when the database is running.
 
-## Alternatives considered
+Alternatives considered
 
 1. Keep the prediction log schema inline in `main.py`
    - Pros: quick to implement and easy to read in one file.
@@ -60,7 +60,7 @@ Database-dependent tests will use skip semantics instead of fail-fast behavior w
    - Pros: simple at first glance.
    - Cons: does not isolate dependency boundaries and makes it harder to tell whether failures are due to API logic, missing artifacts, schema drift, or database availability.
 
-## Consequences
+Consequences
 
 - The schema is now under source control and review, which makes changes to the logging table visible and intentional.
 - Prediction logging is isolated from the request path and does not compromise latency or correctness.

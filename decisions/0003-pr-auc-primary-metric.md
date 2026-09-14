@@ -1,9 +1,9 @@
-# 0003 — PR-AUC as primary ranking metric, not ROC-AUC or accuracy
+0003 — PR-AUC as primary ranking metric, not ROC-AUC or accuracy
 
-**Status:** Accepted
-**Milestone:** M2
+Status: Accepted
+Milestone: M2
 
-## Context
+Context
 
 Fraud is a small minority class in this dataset. Accuracy is meaningless
 here — a model predicting "not fraud" for everything scores extremely
@@ -12,14 +12,14 @@ instead, but it's evaluated partly against the true-negative rate, which
 is trivially easy to get right when negatives dominate — it can look
 deceptively strong even for a mediocre fraud-ranking model.
 
-## Decision
+Decision
 
 Use PR-AUC (average precision) as the primary metric for model
 selection and comparison across M2-M3. ROC-AUC, precision, recall, F1,
 and Brier score are all reported alongside it — no single number is
 ever the whole story — but PR-AUC is what determines which model wins.
 
-## Alternatives considered
+Alternatives considered
 
 - ROC-AUC alone — rejected: overstates performance under severe class
   imbalance, a well-known critique of ROC-AUC on rare-event problems.
@@ -30,7 +30,7 @@ ever the whole story — but PR-AUC is what determines which model wins.
   different real dollar costs (`COST_FALSE_NEGATIVE` vs
   `COST_FALSE_POSITIVE` in `config.py`).
 
-## Consequences
+Consequences
 
 Model comparison in M3 and threshold selection in M4 are both anchored
 to PR-AUC plus the explicit cost model — never to a single

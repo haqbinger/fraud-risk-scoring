@@ -1,6 +1,6 @@
-# M4 Summary: Calibration, thresholding, and cost-model pivots
+M4 Summary: Calibration, thresholding, and cost-model pivots
 
-## What went wrong at first
+What went wrong at first
 
 We encountered a series of issues that were not all model-related:
 
@@ -11,7 +11,7 @@ We encountered a series of issues that were not all model-related:
 
 These were real engineering problems, but they were not the core problem with the fraud model itself.
 
-## What we fixed
+What we fixed
 
 We corrected the pipeline by:
 
@@ -20,9 +20,7 @@ We corrected the pipeline by:
 - persisting the selected winner model to `data/processed/winning_model.json`
 - enforcing review-cap and cost-aware threshold optimization
 
-## Calibration finding
-
-The key calibration result was that the PR-AUC stayed essentially unchanged across methods, and that is expected.
+Calibration finding
 
 Why:
 
@@ -46,7 +44,7 @@ This showed that:
 - calibration materially improved probability quality
 - Platt was preferred because it preserved PR-AUC while achieving near-identical Brier performance to isotonic
 
-## Cost-model pivot
+Cost-model pivot
 
 The early thresholding results were mathematically consistent but operationally absurd. That was a sign that the cost model assumptions were unrealistic, not that the optimization logic was completely broken.
 
@@ -68,7 +66,7 @@ These values reflect:
 - a false positive is still costly, but substantially less so
 - a manual review policy cannot realistically exceed 5% of traffic
 
-## Final decision
+Final decision
 
 We selected the Platt-calibrated model and a cost-aware threshold under a 5% review cap.
 
@@ -86,9 +84,9 @@ Compared with naive threshold 0.5:
 - naive threshold total cost: $6,166,000.00
 - cost-aware threshold savings: $1,577,650.00
 
-## Why the plots matter
+Why the plots matter
 
-### Cost-sensitive threshold sweep
+Cost-sensitive threshold sweep
 
 This plot shows expected total cost as a function of threshold. It demonstrates:
 
@@ -96,7 +94,7 @@ This plot shows expected total cost as a function of threshold. It demonstrates:
 - the threshold is a function of the cost model and review constraints
 - a naive threshold like 0.5 is often not the business-optimal choice
 
-### Reliability diagram
+Reliability diagram
 
 This plot shows whether the predicted probabilities match actual fraud rates.
 
@@ -106,7 +104,7 @@ The important story is:
 - after Platt or isotonic calibration, the curve moves much closer to the diagonal
 - this is the visual evidence that the probability outputs are much more trustworthy for downstream thresholding
 
-## Final takeaway
+Final takeaway
 
 This project changed from a “train a model” problem into a “calibrate probabilities and optimize under business constraints” problem.
 
