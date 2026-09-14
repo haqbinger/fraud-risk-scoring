@@ -116,7 +116,6 @@ def main():
     print(f"Best trial: #{study.best_trial.number}  mean CV PR-AUC = {best_cv_pr_auc:.4f}")
     print(f"Best params: {best_params}")
 
-    # --- retrain best config on the full P2 single train/val split ---
     print("\nRetraining best config on the full train split, evaluating on val (single split, same as P2) ...")
     categories_map = {c: sorted(train_full[c].dropna().unique().tolist()) for c in cat_cols}
     X_train_full, y_train_full = build_xy(train_full, selected_features, cat_cols, categories_map)
@@ -129,7 +128,6 @@ def main():
     val_prob = final_model.predict_proba(X_val_full)[:, 1]
     val_pr_auc = average_precision_score(y_val_full, val_prob)
 
-    # --- save artifacts ---
     trial_rows = [
         {"trial": t.number, **t.params, "mean_cv_pr_auc": t.value}
         for t in study.trials if t.value is not None

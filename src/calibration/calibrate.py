@@ -49,11 +49,9 @@ def run():
 
     model = load_winning_model()
 
-    # Raw probabilities
     uncalibrated_prob = model.predict_proba(X_test)[:, 1]
     uncalibrated_metrics = compute_metrics(y_test, uncalibrated_prob)
 
-    # ----- Manual Platt calibration on validation set -----
     val_raw = model.predict_proba(X_val)[:, 1]
     platt_model = LogisticRegression(max_iter=1000)
     platt_model.fit(val_raw.reshape(-1, 1), y_val)
@@ -62,7 +60,6 @@ def run():
     platt_prob = platt_model.predict_proba(test_raw.reshape(-1, 1))[:, 1]
     platt_metrics = compute_metrics(y_test, platt_prob)
 
-    # ----- Manual isotonic calibration on validation set -----
     iso_model = IsotonicRegression(out_of_bounds="clip")
     iso_model.fit(val_raw, y_val)
     isotonic_prob = iso_model.predict(test_raw)

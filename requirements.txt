@@ -4,6 +4,7 @@ psycopg2-binary==2.9.13
 scikit-learn==1.9.1
 xgboost==3.4.1
 optuna==5.0.0
+lightgbm==4.7.0
 matplotlib==3.11.2
 shap==0.52.0
 mlflow==3.16.0

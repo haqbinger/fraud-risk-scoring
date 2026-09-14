@@ -102,9 +102,6 @@ def main():
     }).sort_values("perm_importance_mean", ascending=False).reset_index(drop=True)
     perm_df.to_csv(f"{REPORT_DIR}/permutation_importance.csv", index=False)
 
-    # ---------------------------------------------------------------------
-    # Disagreement analysis
-    # ---------------------------------------------------------------------
     gain_df["gain_rank"] = gain_df["gain_importance"].rank(ascending=False, method="min").astype(int)
     perm_df["perm_rank"] = perm_df["perm_importance_mean"].rank(ascending=False, method="min").astype(int)
 
@@ -120,10 +117,8 @@ def main():
         "feature", "gain_rank", "perm_rank", "rank_gap", "gain_importance", "perm_importance_mean",
     ]].to_string(index=False))
 
-    # ---------------------------------------------------------------------
     # Drop candidates: (A) hurts on permutation, (B) near-zero gain,
     # (C) redundant with a higher-ranked feature (Spearman > threshold)
-    # ---------------------------------------------------------------------
     drop_reasons = {}
     for _, row in merged.iterrows():
         f = row["feature"]
