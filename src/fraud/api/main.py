@@ -13,7 +13,6 @@ except ImportError:
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from sqlalchemy import text
 
-from calibration.calibrate import load_winning_model
 from fraud.api.schemas import (
     HealthResponse,
     ModelInfoResponse,
@@ -25,13 +24,10 @@ from fraud.api.serving import build_live_feature_vector
 from fraud.data import get_engine
 
 ROOT = Path(__file__).resolve().parents[3]
-DATA_DIR = ROOT / "data" / "processed"
-CALIBRATOR_PATH = DATA_DIR / "platt_calibrator.joblib"
-METADATA_PATH = DATA_DIR / "model_metadata.json"
+MODELS_DIR = ROOT / "models"
+MODEL_PATH = MODELS_DIR / "lgbm_calibrated.pkl"
+METADATA_PATH = MODELS_DIR / "model_metadata.json"
 PREDICTION_LOGS_DDL_PATH = ROOT / "sql" / "prediction_logs.sql"
-
-VAL_PR_AUC = 0.2312  # ADR 0004
-TRAINED_ON_ROWS = 413378  # M2 temporal split print
 
 INSERT_PREDICTION_LOG_SQL = text(
     """
@@ -43,8 +39,7 @@ INSERT_PREDICTION_LOG_SQL = text(
 )
 
 _state = {
-    "model": None,
-    "calibrator": None,
+    "model": None,  # CalibratedLGBMPipeline (LightGBM model + calibrator + threshold)
     "explainer": None,
     "engine": None,
     "metadata": None,
@@ -55,13 +50,12 @@ app = FastAPI(title="Fraud Risk Scoring API")
 
 @app.on_event("startup")
 def startup():
-    _state["model"] = load_winning_model()
-    _state["calibrator"] = joblib.load(CALIBRATOR_PATH)
+    _state["model"] = joblib.load(MODEL_PATH)
     with open(METADATA_PATH) as f:
         _state["metadata"] = json.load(f)
     _state["engine"] = get_engine()
     if SHAP_AVAILABLE:
-     _state["explainer"] = shap.TreeExplainer(_state["model"])
+        _state["explainer"] = shap.TreeExplainer(_state["model"].model)
 
     with _state["engine"].connect() as conn:
         conn.execute(text(PREDICTION_LOGS_DDL_PATH.read_text()))
@@ -90,6 +84,33 @@ def _log_prediction(transaction_id, probability_raw, probability_calibrated, dec
         print(f"prediction logging failed: {exc}")
 
 
+def _flatten_request(request: TransactionRequest, txn_ts) -> dict:
+    raw_input = {
+        "card1": request.card1,
+        "transaction_amt": request.transaction_amt,
+        "txn_ts": txn_ts,
+        "product_cd": request.product_cd,
+        "p_emaildomain": request.p_emaildomain,
+        "r_emaildomain": request.r_emaildomain,
+        "device_type": request.device_type,
+        "device_info": request.device_info,
+        "card2": request.card2,
+        "card3": request.card3,
+        "card4": request.card4,
+        "card5": request.card5,
+        "card6": request.card6,
+        "addr1": request.addr1,
+        "addr2": request.addr2,
+        "dist1": request.dist1,
+        "dist2": request.dist2,
+    }
+    raw_input.update(request.C)
+    raw_input.update(request.D)
+    raw_input.update(request.V)
+    raw_input.update(request.M)
+    return raw_input
+
+
 @app.post("/predict", response_model=PredictionResponse)
 def predict(request: TransactionRequest, background_tasks: BackgroundTasks):
     start = time.perf_counter()
@@ -98,51 +119,53 @@ def predict(request: TransactionRequest, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=503, detail="Model not loaded")
 
     metadata = _state["metadata"]
+    pipeline = _state["model"]
     txn_ts = request.txn_ts or datetime.now(timezone.utc)
     if txn_ts.tzinfo is not None:
         txn_ts = txn_ts.astimezone(timezone.utc).replace(tzinfo=None)
 
-    raw_input = {
-        "card1": request.card1,
-        "transaction_amt": request.transaction_amt,
-        "txn_ts": txn_ts,
-        "product_cd": request.product_cd,
-        "p_emaildomain": request.p_emaildomain,
-        "device_type": request.device_type,
-        "device_info": request.device_info,
-    }
+    raw_input = _flatten_request(request, txn_ts)
 
     X = build_live_feature_vector(
         raw_input,
         engine=_state["engine"],
-        category_maps=metadata["category_maps"],
-        medians=metadata["medians"],
-        feature_columns=metadata["feature_columns"],
+        selected_features=metadata["selected_features"],
+        cat_cols=metadata["categorical_features"],
+        categories_map=pipeline.categories_map,
     )
 
-    prob_raw = float(_state["model"].predict_proba(X)[:, 1][0])
-    prob_calibrated = float(_state["calibrator"].predict_proba([[prob_raw]])[0][1])
+    prob_raw = float(pipeline.predict_proba_raw(X)[0])
+    prob_calibrated = float(pipeline.predict_proba(X)[0])
     threshold = metadata["threshold"]
     decision = "BLOCK" if prob_calibrated >= threshold else "ALLOW"
 
     if SHAP_AVAILABLE and _state["explainer"] is not None:
-     shap_values = _state["explainer"].shap_values(X)
-     if isinstance(shap_values, list):
-        row_shap = shap_values[-1][0]
-     else:
-        row_shap = shap_values[0]
-     order = np.argsort(-np.abs(row_shap))[:5]
-     top_features = [
-        SHAPContribution(
-            feature=X.columns[i],
-            value=float(X.iloc[0, i]),
-            shap_contribution=float(row_shap[i]),
-        )
-        for i in order
-        ]
+        shap_values = _state["explainer"].shap_values(X)
+        if isinstance(shap_values, list):
+            row_shap = shap_values[-1][0]
+        else:
+            row_shap = shap_values[0]
+        order = np.argsort(-np.abs(row_shap))[:5]
+        cat_cols = metadata["categorical_features"]
+        top_features = []
+        for i in order:
+            feature = X.columns[i]
+            if feature in cat_cols:
+                value = raw_input.get(feature)
+                if value is None:
+                    value = "missing"
+            else:
+                value = float(X.iloc[0, i])
+            top_features.append(
+                SHAPContribution(
+                    feature=feature,
+                    value=value,
+                    shap_contribution=float(row_shap[i]),
+                )
+            )
     else:
-     top_features = []
-     
+        top_features = []
+
     latency_ms = (time.perf_counter() - start) * 1000
 
     background_tasks.add_task(
@@ -151,7 +174,7 @@ def predict(request: TransactionRequest, background_tasks: BackgroundTasks):
         prob_raw,
         prob_calibrated,
         decision,
-        metadata["model_version"],
+        metadata["model_type"],
         latency_ms,
     )
 
@@ -162,7 +185,7 @@ def predict(request: TransactionRequest, background_tasks: BackgroundTasks):
         decision=decision,
         threshold=threshold,
         top_features=top_features,
-        model_version=metadata["model_version"],
+        model_version=metadata["model_type"],
         latency_ms=latency_ms,
     )
 
@@ -190,12 +213,12 @@ def model_info():
 
     metadata = _state["metadata"]
     return ModelInfoResponse(
-        model_version=metadata["model_version"],
-        model_type="xgboost",
-        trained_on_rows=TRAINED_ON_ROWS,
-        val_pr_auc=VAL_PR_AUC,
-        calibration_method=metadata["calibration_method"],
+        model_version=metadata["model_type"],
+        model_type="lightgbm",
+        val_pr_auc=metadata["val_pr_auc"],
+        test_pr_auc=metadata["test_pr_auc"],
+        calibration_method=metadata["calibrator_type"],
         decision_threshold=metadata["threshold"],
-        cost_false_negative=metadata["cost_false_negative"],
-        cost_false_positive=metadata["cost_false_positive"],
+        cost_false_negative=metadata["cost_model"]["cost_false_negative"],
+        cost_false_positive=metadata["cost_model"]["cost_false_positive"],
     )

@@ -19,13 +19,15 @@ def engine():
 
 
 class FakeModel:
-    def predict_proba(self, X):
-        return np.array([[0.7, 0.3]])
+    """Stands in for CalibratedLGBMPipeline."""
 
+    categories_map = {}
 
-class FakeCalibrator:
+    def predict_proba_raw(self, X):
+        return np.array([0.3])
+
     def predict_proba(self, X):
-        return np.array([[0.7, 0.3]])
+        return np.array([0.3])
 
 
 class FakeExplainer:
@@ -35,13 +37,16 @@ class FakeExplainer:
 
 FAKE_METADATA = {
     "threshold": 0.14,
-    "model_version": "xgboost-v1",
-    "calibration_method": "platt",
-    "feature_columns": ["feat_a"],
-    "category_maps": {},
-    "medians": {},
-    "cost_false_negative": 2000.0,
-    "cost_false_positive": 150.0,
+    "model_type": "LightGBM",
+    "calibrator_type": "platt",
+    "selected_features": ["feat_a"],
+    "categorical_features": [],
+    "val_pr_auc": 0.67,
+    "test_pr_auc": 0.59,
+    "cost_model": {
+        "cost_false_negative": 2000.0,
+        "cost_false_positive": 150.0,
+    },
 }
 
 
@@ -51,7 +56,6 @@ def fake_model_state(monkeypatch):
 
     fake_state = {
         "model": FakeModel(),
-        "calibrator": FakeCalibrator(),
         "explainer": FakeExplainer(),
         "engine": None,
         "metadata": dict(FAKE_METADATA),
@@ -64,7 +68,7 @@ def fake_model_state(monkeypatch):
 def test_client(monkeypatch, fake_model_state):
     import fraud.api.main as main_module
 
-    def fake_build_live_feature_vector(raw_input, engine, category_maps, medians, feature_columns):
+    def fake_build_live_feature_vector(raw_input, engine, selected_features, cat_cols, categories_map):
         return pd.DataFrame([{"feat_a": 1.0}])
 
     monkeypatch.setattr(main_module, "build_live_feature_vector", fake_build_live_feature_vector)
