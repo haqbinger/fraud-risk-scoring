@@ -1,0 +1,255 @@
+# P2 Feature Selection Summary
+
+- Kitchen sink features: 419
+- Kitchen sink val PR-AUC (ceiling): 0.5796
+- Correlation threshold used: 0.95
+- Reduced-set val PR-AUC: 0.5888
+- PR-AUC delta from ceiling: -0.0092 (within 0.01 tolerance)
+- Features kept: 182
+- Features dropped: 237
+
+## Drop reasons (counts)
+
+- gain_importance < 0.0001: 110
+- permutation_importance < 0: 71
+- correlation > 0.95: 56
+
+## Dropped features
+
+- `velocity_5min`: gain_importance < 0.0001
+- `velocity_30min`: gain_importance < 0.0001
+- `velocity_1h`: permutation_importance < 0
+- `card1_te_txn_count`: gain_importance < 0.0001
+- `p_emaildomain_freq`: permutation_importance < 0
+- `r_emaildomain_freq`: correlation > 0.95 with higher-ranked 'C4'
+- `v_block1_missing`: gain_importance < 0.0001
+- `v_block2_missing`: gain_importance < 0.0001
+- `v_block3_missing`: gain_importance < 0.0001
+- `v_block4_missing`: gain_importance < 0.0001
+- `v_block5_missing`: gain_importance < 0.0001
+- `v_block6_missing`: gain_importance < 0.0001
+- `v_block7_missing`: gain_importance < 0.0001
+- `v_block8_missing`: gain_importance < 0.0001
+- `v_block9_missing`: gain_importance < 0.0001
+- `C8`: correlation > 0.95 with higher-ranked 'C10'
+- `D1`: correlation > 0.95 with higher-ranked 'D2'
+- `D6`: correlation > 0.95 with higher-ranked 'D4'
+- `D7`: correlation > 0.95 with higher-ranked 'D5'
+- `D12`: correlation > 0.95 with higher-ranked 'D4'
+- `M1`: gain_importance < 0.0001
+- `M2`: permutation_importance < 0
+- `M7`: gain_importance < 0.0001
+- `V1`: gain_importance < 0.0001
+- `V3`: gain_importance < 0.0001
+- `V9`: gain_importance < 0.0001
+- `V10`: permutation_importance < 0
+- `V13`: permutation_importance < 0
+- `V14`: gain_importance < 0.0001
+- `V15`: gain_importance < 0.0001
+- `V16`: correlation > 0.95 with higher-ranked 'C7'
+- `V17`: gain_importance < 0.0001
+- `V18`: permutation_importance < 0
+- `V19`: permutation_importance < 0
+- `V21`: gain_importance < 0.0001
+- `V22`: gain_importance < 0.0001
+- `V27`: gain_importance < 0.0001
+- `V28`: gain_importance < 0.0001
+- `V30`: correlation > 0.95 with higher-ranked 'V29'
+- `V31`: gain_importance < 0.0001
+- `V32`: gain_importance < 0.0001
+- `V33`: correlation > 0.95 with higher-ranked 'C7'
+- `V34`: gain_importance < 0.0001
+- `V39`: permutation_importance < 0
+- `V40`: gain_importance < 0.0001
+- `V41`: gain_importance < 0.0001
+- `V42`: permutation_importance < 0
+- `V43`: correlation > 0.95 with higher-ranked 'V85'
+- `V48`: correlation > 0.95 with higher-ranked 'V49'
+- `V50`: gain_importance < 0.0001
+- `V51`: correlation > 0.95 with higher-ranked 'C7'
+- `V52`: correlation > 0.95 with higher-ranked 'C7'
+- `V55`: permutation_importance < 0
+- `V57`: correlation > 0.95 with higher-ranked 'C7'
+- `V58`: correlation > 0.95 with higher-ranked 'C7'
+- `V59`: permutation_importance < 0
+- `V60`: permutation_importance < 0
+- `V63`: correlation > 0.95 with higher-ranked 'V85'
+- `V64`: correlation > 0.95 with higher-ranked 'V85'
+- `V65`: gain_importance < 0.0001
+- `V66`: permutation_importance < 0
+- `V68`: gain_importance < 0.0001
+- `V69`: correlation > 0.95 with higher-ranked 'V70'
+- `V71`: gain_importance < 0.0001
+- `V72`: gain_importance < 0.0001
+- `V73`: permutation_importance < 0
+- `V74`: permutation_importance < 0
+- `V77`: permutation_importance < 0
+- `V79`: correlation > 0.95 with higher-ranked 'C7'
+- `V80`: correlation > 0.95 with higher-ranked 'V85'
+- `V81`: permutation_importance < 0
+- `V84`: gain_importance < 0.0001
+- `V88`: gain_importance < 0.0001
+- `V89`: gain_importance < 0.0001
+- `V90`: correlation > 0.95 with higher-ranked 'V49'
+- `V91`: correlation > 0.95 with higher-ranked 'V70'
+- `V92`: correlation > 0.95 with higher-ranked 'C4'
+- `V93`: gain_importance < 0.0001
+- `V94`: correlation > 0.95 with higher-ranked 'C7'
+- `V95`: gain_importance < 0.0001
+- `V96`: permutation_importance < 0
+- `V97`: permutation_importance < 0
+- `V98`: gain_importance < 0.0001
+- `V100`: gain_importance < 0.0001
+- `V103`: gain_importance < 0.0001
+- `V104`: permutation_importance < 0
+- `V105`: correlation > 0.95 with higher-ranked 'V136'
+- `V106`: gain_importance < 0.0001
+- `V107`: gain_importance < 0.0001
+- `V108`: gain_importance < 0.0001
+- `V109`: permutation_importance < 0
+- `V110`: gain_importance < 0.0001
+- `V111`: gain_importance < 0.0001
+- `V112`: permutation_importance < 0
+- `V113`: gain_importance < 0.0001
+- `V114`: gain_importance < 0.0001
+- `V115`: permutation_importance < 0
+- `V116`: gain_importance < 0.0001
+- `V117`: gain_importance < 0.0001
+- `V118`: gain_importance < 0.0001
+- `V119`: gain_importance < 0.0001
+- `V120`: gain_importance < 0.0001
+- `V122`: gain_importance < 0.0001
+- `V123`: permutation_importance < 0
+- `V125`: gain_importance < 0.0001
+- `V128`: permutation_importance < 0
+- `V130`: permutation_importance < 0
+- `V131`: permutation_importance < 0
+- `V132`: gain_importance < 0.0001
+- `V133`: correlation > 0.95 with higher-ranked 'V102'
+- `V135`: gain_importance < 0.0001
+- `V138`: permutation_importance < 0
+- `V140`: permutation_importance < 0
+- `V141`: correlation > 0.95 with higher-ranked 'V162'
+- `V142`: correlation > 0.95 with higher-ranked 'V162'
+- `V143`: correlation > 0.95 with higher-ranked 'V165'
+- `V144`: correlation > 0.95 with higher-ranked 'V166'
+- `V145`: correlation > 0.95 with higher-ranked 'V166'
+- `V146`: correlation > 0.95 with higher-ranked 'V147'
+- `V148`: permutation_importance < 0
+- `V152`: permutation_importance < 0
+- `V153`: gain_importance < 0.0001
+- `V154`: gain_importance < 0.0001
+- `V155`: permutation_importance < 0
+- `V156`: correlation > 0.95 with higher-ranked 'V149'
+- `V157`: gain_importance < 0.0001
+- `V158`: correlation > 0.95 with higher-ranked 'V149'
+- `V159`: permutation_importance < 0
+- `V161`: permutation_importance < 0
+- `V163`: permutation_importance < 0
+- `V164`: correlation > 0.95 with higher-ranked 'V165'
+- `V167`: permutation_importance < 0
+- `V168`: correlation > 0.95 with higher-ranked 'V204'
+- `V172`: gain_importance < 0.0001
+- `V174`: gain_importance < 0.0001
+- `V175`: correlation > 0.95 with higher-ranked 'V210'
+- `V176`: gain_importance < 0.0001
+- `V178`: permutation_importance < 0
+- `V179`: gain_importance < 0.0001
+- `V181`: permutation_importance < 0
+- `V182`: gain_importance < 0.0001
+- `V183`: gain_importance < 0.0001
+- `V184`: gain_importance < 0.0001
+- `V188`: gain_importance < 0.0001
+- `V190`: gain_importance < 0.0001
+- `V193`: gain_importance < 0.0001
+- `V195`: gain_importance < 0.0001
+- `V196`: gain_importance < 0.0001
+- `V198`: gain_importance < 0.0001
+- `V199`: permutation_importance < 0
+- `V201`: permutation_importance < 0
+- `V203`: correlation > 0.95 with higher-ranked 'V204'
+- `V206`: permutation_importance < 0
+- `V208`: correlation > 0.95 with higher-ranked 'V210'
+- `V209`: correlation > 0.95 with higher-ranked 'V210'
+- `V211`: gain_importance < 0.0001
+- `V212`: permutation_importance < 0
+- `V213`: gain_importance < 0.0001
+- `V214`: gain_importance < 0.0001
+- `V215`: permutation_importance < 0
+- `V216`: gain_importance < 0.0001
+- `V217`: correlation > 0.95 with higher-ranked 'V263'
+- `V218`: permutation_importance < 0
+- `V219`: correlation > 0.95 with higher-ranked 'V265'
+- `V221`: permutation_importance < 0
+- `V223`: gain_importance < 0.0001
+- `V225`: gain_importance < 0.0001
+- `V226`: gain_importance < 0.0001
+- `V227`: correlation > 0.95 with higher-ranked 'V271'
+- `V228`: gain_importance < 0.0001
+- `V230`: permutation_importance < 0
+- `V231`: permutation_importance < 0
+- `V232`: permutation_importance < 0
+- `V233`: permutation_importance < 0
+- `V235`: correlation > 0.95 with higher-ranked 'V278'
+- `V236`: gain_importance < 0.0001
+- `V237`: correlation > 0.95 with higher-ranked 'V278'
+- `V238`: permutation_importance < 0
+- `V239`: gain_importance < 0.0001
+- `V240`: gain_importance < 0.0001
+- `V241`: gain_importance < 0.0001
+- `V244`: gain_importance < 0.0001
+- `V246`: permutation_importance < 0
+- `V247`: gain_importance < 0.0001
+- `V250`: correlation > 0.95 with higher-ranked 'V256'
+- `V251`: correlation > 0.95 with higher-ranked 'V256'
+- `V252`: gain_importance < 0.0001
+- `V253`: gain_importance < 0.0001
+- `V254`: permutation_importance < 0
+- `V255`: correlation > 0.95 with higher-ranked 'V256'
+- `V262`: permutation_importance < 0
+- `V267`: permutation_importance < 0
+- `V269`: gain_importance < 0.0001
+- `V270`: permutation_importance < 0
+- `V272`: correlation > 0.95 with higher-ranked 'V271'
+- `V273`: permutation_importance < 0
+- `V275`: correlation > 0.95 with higher-ranked 'V274'
+- `V276`: permutation_importance < 0
+- `V277`: permutation_importance < 0
+- `V280`: correlation > 0.95 with higher-ranked 'V308'
+- `V283`: correlation > 0.95 with higher-ranked 'V282'
+- `V284`: gain_importance < 0.0001
+- `V285`: permutation_importance < 0
+- `V286`: gain_importance < 0.0001
+- `V287`: permutation_importance < 0
+- `V288`: permutation_importance < 0
+- `V289`: permutation_importance < 0
+- `V292`: gain_importance < 0.0001
+- `V293`: gain_importance < 0.0001
+- `V294`: correlation > 0.95 with higher-ranked 'V317'
+- `V297`: gain_importance < 0.0001
+- `V298`: gain_importance < 0.0001
+- `V299`: permutation_importance < 0
+- `V300`: permutation_importance < 0
+- `V301`: permutation_importance < 0
+- `V302`: permutation_importance < 0
+- `V303`: correlation > 0.95 with higher-ranked 'C10'
+- `V304`: gain_importance < 0.0001
+- `V305`: gain_importance < 0.0001
+- `V306`: permutation_importance < 0
+- `V311`: permutation_importance < 0
+- `V315`: correlation > 0.95 with higher-ranked 'V313'
+- `V318`: permutation_importance < 0
+- `V319`: permutation_importance < 0
+- `V322`: gain_importance < 0.0001
+- `V324`: gain_importance < 0.0001
+- `V325`: gain_importance < 0.0001
+- `V326`: gain_importance < 0.0001
+- `V327`: gain_importance < 0.0001
+- `V328`: gain_importance < 0.0001
+- `V329`: gain_importance < 0.0001
+- `V332`: permutation_importance < 0
+- `V333`: gain_importance < 0.0001
+- `V336`: gain_importance < 0.0001
+- `V337`: gain_importance < 0.0001
+- `V338`: correlation > 0.95 with higher-ranked 'V330'
+- `V339`: gain_importance < 0.0001
